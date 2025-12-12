@@ -7,6 +7,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import TestAttempt from "./pages/TestAttempt";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

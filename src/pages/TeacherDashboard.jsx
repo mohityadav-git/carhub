@@ -31,9 +31,11 @@ const initialTests = [
 const buildSampleQuestion = (subject, className, idx) => {
   const numA = idx + 2;
   const numB = idx + 3;
+  const difficultyCycle = ["Easy", "Medium", "Hard"];
   return {
     id: `Q${idx + 1}`,
     question: `${subject} sample ${idx + 1} for ${className}: What is ${numA} + ${numB}?`,
+    difficulty: difficultyCycle[idx % difficultyCycle.length],
     options: [
       { text: `${numA + numB}`, imageUrl: null },
       { text: `${numA + numB + 1}`, imageUrl: null },
@@ -61,6 +63,7 @@ const hasBankData = (bank) =>
   Object.keys(bank).some((subj) => bank[subj] && Object.keys(bank[subj]).length > 0);
 
 const subjectOptions = [
+  { name: "All Subjects", color: "#2f6cab", desc: "Combine all subjects into a single paper." },
   { name: "Mathematics", color: "#59c27f", desc: "Numbers, algebra, geometry, and problem solving." },
   { name: "Science", color: "#4ca1d3", desc: "Physics, chemistry, biology basics, and experiments." },
   { name: "English", color: "#f2a457", desc: "Reading, grammar, writing, and comprehension." },
@@ -107,6 +110,18 @@ const normalizeBank = (raw) => {
 // Prebuild a default bank so we can also seed sample tests with example questions
 const defaultQuestionBank = normalizeBank(buildInitialQuestionBank());
 
+const getQuestionsForSubjectAndClass = (subject, className, bank) => {
+  const safeClass = className?.trim();
+  if (subject === "All Subjects") {
+    return Object.values(bank || {}).flatMap((entry) => {
+      if (!entry) return [];
+      return (safeClass && entry[safeClass]) || entry.All || [];
+    });
+  }
+  const subjectEntry = (bank || {})[subject] || {};
+  return (safeClass && subjectEntry[safeClass]) || subjectEntry.All || [];
+};
+
 function TeacherDashboard() {
   const { user } = useAuth();
   const [tests, setTests] = useState(() => {
@@ -128,7 +143,7 @@ function TeacherDashboard() {
   const [questionBank, setQuestionBank] = useState(() => {
     const stored = localStorage.getItem("teacherQuestionBank");
     const parsed = stored ? normalizeBank(JSON.parse(stored)) : {};
-    return hasBankData(parsed) ? parsed : defaultQuestionBank;
+    return hasBankData(parsed) ? parsed : {};
   });
 
   const [subject, setSubject] = useState("");
@@ -149,11 +164,12 @@ function TeacherDashboard() {
   const [optionB, setOptionB] = useState("");
   const [optionC, setOptionC] = useState("");
   const [optionD, setOptionD] = useState("");
+  const [questionDifficulty, setQuestionDifficulty] = useState("Easy");
   const [optionAImage, setOptionAImage] = useState(null);
   const [optionBImage, setOptionBImage] = useState(null);
   const [optionCImage, setOptionCImage] = useState(null);
   const [optionDImage, setOptionDImage] = useState(null);
-  const [correctOption, setCorrectOption] = useState("0");
+  const [correctOption, setCorrectOption] = useState("A");
   const [pendingTest, setPendingTest] = useState(null);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState([]);
   const [showClassPicker, setShowClassPicker] = useState(false);
@@ -177,10 +193,7 @@ function TeacherDashboard() {
     if (!subject || !className || !date || !time) return;
 
     const newTestId = "T" + (tests.length + 1);
-    const subjectQuestions =
-      (questionBank[subject] &&
-        (questionBank[subject][className] || questionBank[subject].All)) ||
-      [];
+    const subjectQuestions = getQuestionsForSubjectAndClass(subject, className, questionBank);
 
     const newTest = {
       id: newTestId,
@@ -231,10 +244,10 @@ function TeacherDashboard() {
       { text: optionC.trim(), imageUrl: imageUrls[2] },
       { text: optionD.trim(), imageUrl: imageUrls[3] },
     ].filter((opt) => opt.text);
-    const parsedIndex = Number.parseInt(correctOption, 10);
-    const safeIndex = Number.isNaN(parsedIndex)
-      ? 0
-      : Math.min(optionList.length - 1, parsedIndex);
+    const letter = (correctOption || "A").trim().toUpperCase();
+    const letterIndexMap = { A: 0, B: 1, C: 2, D: 3 };
+    const letterIndex = letterIndexMap[letter] ?? 0;
+    const safeIndex = Math.min(optionList.length - 1, Math.max(0, letterIndex));
 
     const classKey = selectedQuestionClass.trim();
     const existingList =
@@ -246,6 +259,8 @@ function TeacherDashboard() {
     const newQuestion = {
       id: `Q${existingList.length + 1}`,
       question: questionText.trim(),
+      // Persist difficulty per question so teachers can see/filter later.
+      difficulty: questionDifficulty,
       options: optionList,
       correctIndex: safeIndex,
     };
@@ -268,11 +283,12 @@ function TeacherDashboard() {
     setOptionB("");
     setOptionC("");
     setOptionD("");
+    setQuestionDifficulty("Easy");
     setOptionAImage(null);
     setOptionBImage(null);
     setOptionCImage(null);
     setOptionDImage(null);
-    setCorrectOption("0");
+    setCorrectOption("A");
   };
 
   useEffect(() => {
@@ -284,13 +300,7 @@ function TeacherDashboard() {
   }, [questionBank]);
 
   // If the bank was previously cleared in storage, reseed with local samples
-  useEffect(() => {
-    if (!hasBankData(questionBank)) {
-      const seeded = normalizeBank(buildInitialQuestionBank());
-      setQuestionBank(seeded);
-      localStorage.setItem("teacherQuestionBank", JSON.stringify(seeded));
-    }
-  }, [questionBank]);
+  // No auto-seed; keep question bank empty until teacher adds
 
   useEffect(() => {
     localStorage.setItem("teacherQuestions", JSON.stringify(questions));
@@ -304,11 +314,11 @@ function TeacherDashboard() {
 
   const handleSelectAll = () => {
     if (!pendingTest) return;
-    const subjectEntry = questionBank[pendingTest.subject] || {};
-    const list =
-      subjectEntry[pendingTest.className] ||
-      subjectEntry.All ||
-      [];
+    const list = getQuestionsForSubjectAndClass(
+      pendingTest.subject,
+      pendingTest.className,
+      questionBank
+    );
     setSelectedQuestionIds(list.map((q) => q.id));
   };
 
@@ -382,6 +392,25 @@ function TeacherDashboard() {
   };
 
   const handleCancelSelection = () => {
+    setPendingTest(null);
+    setSelectedQuestionIds([]);
+  };
+
+  const handleResetData = () => {
+    localStorage.removeItem("teacherTests");
+    localStorage.removeItem("teacherQuestions");
+    localStorage.removeItem("teacherQuestionBank");
+    localStorage.removeItem("studentTestRecords");
+
+    setTests(initialTests);
+    setQuestionBank(defaultQuestionBank);
+    const seededQuestions = initialTests.reduce((acc, test) => {
+      const subjectEntry = defaultQuestionBank[test.subject] || {};
+      const sampleList = subjectEntry[test.className] || subjectEntry.All || [];
+      return { ...acc, [test.id]: sampleList.slice(0, 5) };
+    }, {});
+    setQuestions(seededQuestions);
+    setActivePanel(null);
     setPendingTest(null);
     setSelectedQuestionIds([]);
   };
@@ -638,8 +667,11 @@ function TeacherDashboard() {
                         </button>
                       </div>
                       {(() => {
-                        const entry = questionBank[pendingTest.subject] || {};
-                        const list = entry[pendingTest.className] || entry.All || [];
+                        const list = getQuestionsForSubjectAndClass(
+                          pendingTest.subject,
+                          pendingTest.className,
+                          questionBank
+                        );
                         return list.length === 0 ? (
                           <p>No questions in this subject/class yet.</p>
                         ) : (
@@ -653,7 +685,10 @@ function TeacherDashboard() {
                                     onChange={() => handleToggleQuestion(q.id)}
                                   />
                                   <div>
-                                    <strong>{q.id}.</strong> {q.question}
+                                    <strong>{q.id}.</strong> {q.question}{" "}
+                                    <span className="pill pill-soft" style={{ marginLeft: "6px" }}>
+                                      {q.difficulty || "Difficulty not set"}
+                                    </span>
                                     <ol className="option-list" type="A">
                                       {q.options.map((opt, idx) => (
                                         <li key={`${q.id}-${idx}`}>
@@ -690,21 +725,40 @@ function TeacherDashboard() {
                 <form className="form-grid add-question-grid" onSubmit={handleAddQuestion}>
                   <label>
                     Question Subject
-                    <input
-                      type="text"
+                    <select
                       value={selectedQuestionSubject}
                       onChange={(e) => setSelectedQuestionSubject(e.target.value)}
-                      placeholder="e.g. Mathematics, Science"
-                    />
+                    >
+                      {subjectOptions.map((opt) => (
+                        <option key={opt.name} value={opt.name}>
+                          {opt.name}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     Question Class
-                    <input
-                      type="text"
+                    <select
                       value={selectedQuestionClass}
                       onChange={(e) => setSelectedQuestionClass(e.target.value)}
-                      placeholder="e.g. Class 5"
-                    />
+                    >
+                      {classOptions.map((opt) => (
+                        <option key={opt.name} value={opt.name}>
+                          {opt.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Difficulty
+                    <select
+                      value={questionDifficulty}
+                      onChange={(e) => setQuestionDifficulty(e.target.value)}
+                    >
+                      <option>Easy</option>
+                      <option>Medium</option>
+                      <option>Hard</option>
+                    </select>
                   </label>
               <label>
                 Question
@@ -800,14 +854,16 @@ function TeacherDashboard() {
                 </label>
               </div>
                   <label>
-                    Correct Option (0-3)
-                    <input
-                      type="number"
-                      min="0"
-                      max="3"
+                    Correct Option (A-D)
+                    <select
                       value={correctOption}
                       onChange={(e) => setCorrectOption(e.target.value)}
-                    />
+                    >
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                    </select>
                   </label>
                   <button
                     type="submit"
@@ -872,6 +928,7 @@ function TeacherDashboard() {
                       </button>
                     </div>
                   </label>
+                 
                 </div>
                 {Object.keys(questionBank).length === 0 ? (
                   <p>No questions in the bank yet. Add some above.</p>
@@ -902,7 +959,10 @@ function TeacherDashboard() {
                                       }}
                                     >
                                       <div>
-                                        <strong>{q.id}.</strong> {q.question}
+                                        <strong>{q.id}.</strong> {q.question}{" "}
+                                        <span className="pill pill-soft" style={{ marginLeft: "6px" }}>
+                                          {q.difficulty || "Difficulty not set"}
+                                        </span>
                                       </div>
                                       <button
                                         type="button"

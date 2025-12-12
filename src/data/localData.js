@@ -87,79 +87,154 @@ export const studentMockTests = [
 ];
 
 // Test attempt fallback questions
-export const fallbackQuestions = [
-  {
-    id: 1,
-    question: "What is 7 + 5?",
-    options: ["10", "11", "12", "13"],
-    correctIndex: 2,
-  },
-  {
-    id: 2,
-    question: "What is 9 × 3?",
-    options: ["18", "21", "24", "27"],
-    correctIndex: 1,
-  },
-  {
-    id: 3,
-    question: "What is 15 ÷ 6 (rounded)?",
-    options: ["2", "3", "4", "5"],
-    correctIndex: 2,
-  },
-];
+export const fallbackQuestions = [];
 
 // Large demo set to quickly seed UIs with plenty of questions
 export const demoHundredQuestions = Array.from({ length: 100 }, (_, idx) => {
   const base = idx + 1;
-  const numA = 2 + (idx % 15);
-  const numB = 3 + (idx % 12);
-  const subject = subjectOptions[idx % subjectOptions.length].name;
-  const className = classOptions[idx % classOptions.length].name;
-  const difficulty = ["Easy", "Medium", "Hard"][idx % 3];
-
-  return {
-    id: `HQ${base}`,
-    subject,
-    className,
-    difficulty,
-    question: `Sample ${subject} question ${base} for ${className}: What is ${numA} + ${numB}?`,
-    options: [
-      { text: `${numA + numB}`, imageUrl: null },
-      { text: `${numA + numB + 1}`, imageUrl: null },
-      { text: `${numA + numB - 1}`, imageUrl: null },
-      { text: `${numA + numB + 2}`, imageUrl: null },
-    ],
-    correctIndex: 0,
-  };
+  return { id: `HQ${base}`, subject: "", className: "", difficulty: "", question: "", options: [], correctIndex: 0 };
 });
 
+const subjectQuestionTemplates = {
+  Mathematics: (idx) => {
+    const a = 3 + (idx % 10);
+    const b = 2 + (idx % 7);
+    return {
+      question: `Mathematics: What is ${a} + ${b}?`,
+      options: [
+        { text: `${a + b}`, imageUrl: null },
+        { text: `${a + b + 1}`, imageUrl: null },
+        { text: `${a + b - 1}`, imageUrl: null },
+        { text: `${a + b + 2}`, imageUrl: null },
+      ],
+      correctIndex: 0,
+    };
+  },
+  Science: (idx) => {
+    const templates = [
+      {
+        question: "Science: Which gas do plants absorb for photosynthesis?",
+        options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Helium"],
+        correctIndex: 2,
+      },
+      {
+        question: "Science: Which part of the plant conducts photosynthesis?",
+        options: ["Roots", "Stem", "Leaves", "Flowers"],
+        correctIndex: 2,
+      },
+      {
+        question: "Science: What is the boiling point of water at sea level?",
+        options: ["50°C", "100°C", "150°C", "200°C"],
+        correctIndex: 1,
+      },
+      {
+        question: "Science: What is the center of an atom called?",
+        options: ["Electron", "Nucleus", "Proton", "Neutron"],
+        correctIndex: 1,
+      },
+    ];
+    return templates[idx % templates.length];
+  },
+  English: (idx) => {
+    const templates = [
+      {
+        question: "English: Choose the synonym for 'rapid'.",
+        options: ["Slow", "Quick", "Lazy", "Late"],
+        correctIndex: 1,
+      },
+      {
+        question: "English: Identify the noun in the sentence 'The cat slept on the mat.'",
+        options: ["slept", "cat", "on", "the"],
+        correctIndex: 1,
+      },
+      {
+        question: "English: What is the plural of 'child'?",
+        options: ["Childs", "Childes", "Children", "Childrens"],
+        correctIndex: 2,
+      },
+    ];
+    return templates[idx % templates.length];
+  },
+  "Social Studies": (idx) => {
+    const templates = [
+      {
+        question: "Social Studies: Which river is known as the lifeline of Egypt?",
+        options: ["Ganges", "Nile", "Amazon", "Yangtze"],
+        correctIndex: 1,
+      },
+      {
+        question: "Social Studies: Who was the first President of India?",
+        options: ["Mahatma Gandhi", "Dr. Rajendra Prasad", "Jawaharlal Nehru", "Sardar Patel"],
+        correctIndex: 1,
+      },
+      {
+        question: "Social Studies: The Great Wall is in which country?",
+        options: ["India", "China", "Japan", "Russia"],
+        correctIndex: 1,
+      },
+    ];
+    return templates[idx % templates.length];
+  },
+  "Computer Science": (idx) => {
+    const templates = [
+      {
+        question: "Computer Science: What does 'CPU' stand for?",
+        options: [
+          "Central Processing Unit",
+          "Computer Processing Utility",
+          "Central Program Unit",
+          "Control Processing Utility",
+        ],
+        correctIndex: 0,
+      },
+      {
+        question: "Computer Science: Which language is used for styling web pages?",
+        options: ["HTML", "CSS", "Python", "SQL"],
+        correctIndex: 1,
+      },
+      {
+        question: "Computer Science: Which of these is an input device?",
+        options: ["Monitor", "Printer", "Keyboard", "Speaker"],
+        correctIndex: 2,
+      },
+    ];
+    return templates[idx % templates.length];
+  },
+  Hindi: (idx) => {
+    const templates = [
+      {
+        question: "Hindi: 'नदी' का अंग्रेजी शब्द क्या है?",
+        options: ["River", "Hill", "Forest", "Cloud"],
+        correctIndex: 0,
+      },
+      {
+        question: "Hindi: 'सुंदर' का पर्यायवाची शब्द चुनें।",
+        options: ["कुरूप", "शांत", "खूबसूरत", "धीमा"],
+        correctIndex: 2,
+      },
+      {
+        question: "Hindi: 'लड़का' का बहुवचन क्या है?",
+        options: ["लड़की", "लड़कियां", "लड़के", "लड़कों"],
+        correctIndex: 2,
+      },
+    ];
+    return templates[idx % templates.length];
+  },
+};
+
 const buildSampleQuestion = (subject, className, idx) => {
-  const numA = idx + 2;
-  const numB = idx + 3;
+  const generator = subjectQuestionTemplates[subject] || subjectQuestionTemplates.Mathematics;
+  const template = generator(idx);
   return {
     id: `Q${idx + 1}`,
-    question: `${subject} sample ${idx + 1} for ${className}: What is ${numA} + ${numB}?`,
-    options: [
-      { text: `${numA + numB}`, imageUrl: null },
-      { text: `${numA + numB + 1}`, imageUrl: null },
-      { text: `${numA + numB - 1}`, imageUrl: null },
-      { text: `${numA + numB + 2}`, imageUrl: null },
-    ],
-    correctIndex: 0,
+    question: `${template.question} (${className})`,
+    options: template.options,
+    correctIndex: template.correctIndex,
   };
 };
 
 export const buildInitialQuestionBank = () => {
-  const bank = {};
-  subjectOptions.forEach((subj) => {
-    bank[subj.name] = {};
-    classOptions.forEach((cls) => {
-      bank[subj.name][cls.name] = Array.from({ length: 30 }, (_, i) =>
-        buildSampleQuestion(subj.name, cls.name, i)
-      );
-    });
-  });
-  return bank;
+  return {};
 };
 
 export const normalizeBank = (raw) => {
@@ -178,3 +253,4 @@ export const normalizeBank = (raw) => {
 
 export const hasBankData = (bank) =>
   Object.keys(bank).some((subj) => bank[subj] && Object.keys(bank[subj]).length > 0);
+
