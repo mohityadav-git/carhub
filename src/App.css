@@ -604,13 +604,15 @@ a {
   }
 }
 
-/* Student dashboard refresh */
-.student-dashboard {
+/* Student + Teacher dashboard refresh */
+.student-dashboard,
+.teacher-dashboard {
   display: grid;
   gap: 16px;
 }
 
-.student-hero-card {
+.student-hero-card,
+.teacher-hero-card {
   position: relative;
   display: grid;
   grid-template-columns: 1.3fr 0.9fr;
@@ -623,8 +625,8 @@ a {
   overflow: hidden;
   backdrop-filter: blur(6px);
 }
-
-.student-hero-card::after {
+.student-hero-card::after,
+.teacher-hero-card::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -739,7 +741,8 @@ a {
   font-size: 13px;
 }
 
-.student-action-card {
+.student-action-card,
+.teacher-action-card {
   display: grid;
   gap: 12px;
 }
@@ -772,7 +775,8 @@ a {
   font-size: 12px;
 }
 
-.student-action-grid {
+.student-action-grid,
+.teacher-action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
@@ -859,7 +863,8 @@ a {
 }
 
 @media (max-width: 960px) {
-  .student-hero-card {
+  .student-hero-card,
+  .teacher-hero-card {
     grid-template-columns: 1fr;
   }
 }

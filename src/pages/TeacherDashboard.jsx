@@ -567,71 +567,188 @@ function TeacherDashboard() {
     setActivePanel(null);
   };
 
-  return (
-    <div className="page-container teacher-page">
-      <h1>Teacher Dashboard</h1>
-      <p className="subtitle">
-        Welcome, <strong>{user?.name}</strong>. Here you can create and manage
-        weekly tests.
-      </p>
+  const bankQuestionCount = Object.values(questionBank || {}).reduce((total, subjEntry) => {
+    if (!subjEntry) return total;
+    return (
+      total +
+      Object.values(subjEntry).reduce(
+        (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+        0
+      )
+    );
+  }, 0);
 
-      <div className="card dashboard-action-grid" style={{ marginBottom: "16px" }}>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "create" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("create")}
-        >
-          Create Test
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "add" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("add")}
-        >
-          Add Questions
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "bank" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("bank")}
-        >
-          Question Bank
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "homework" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("homework")}
-        >
-          Assign Homework
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "attendance" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("attendance")}
-        >
-          Mark Attendance
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "syllabus" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("syllabus")}
-        >
-          Syllabus
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "datesheet" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("datesheet")}
-        >
-          Datesheet
-        </button>
-        <button
-          className={`btn dashboard-action-btn ${activePanel === "upcoming" ? "active" : ""}`}
-          type="button"
-          onClick={() => setActivePanel("upcoming")}
-        >
-          Upcoming Tests
-        </button>
+  const attendanceMarkedCount = Object.keys(attendanceRecords || {}).length;
+
+  const nextTest = [...tests]
+    .filter((t) => t.status === "Scheduled")
+    .sort((a, b) => {
+      const aDate = new Date(`${a.date || ""}T${a.time || "00:00"}`).getTime();
+      const bDate = new Date(`${b.date || ""}T${b.time || "00:00"}`).getTime();
+      return aDate - bDate;
+    })[0];
+
+  return (
+    <div className="page-container teacher-page teacher-dashboard">
+      <div className="teacher-hero-card student-hero-card">
+        <div className="hero-copy">
+          <div className="hero-tags">
+            <span className="pill hero-pill">Teacher</span>
+            {user?.name && <span className="pill hero-pill">{user.name}</span>}
+          </div>
+          <h1>Welcome back, {user?.name || "Teacher"} 👋</h1>
+          <p className="subtitle">
+            Plan weekly tests, assign homework, track attendance—all in one glance.
+          </p>
+          <div className="hero-stats-grid">
+            <div className="hero-stat">
+              <span className="stat-label">Tests planned</span>
+              <span className="stat-value">{tests.length}</span>
+              <span className="stat-sub">Scheduled and draft</span>
+            </div>
+            <div className="hero-stat">
+              <span className="stat-label">Question bank</span>
+              <span className="stat-value">{bankQuestionCount}</span>
+              <span className="stat-sub">Reusable questions</span>
+            </div>
+            <div className="hero-stat">
+              <span className="stat-label">Homework</span>
+              <span className="stat-value">{homework.length}</span>
+              <span className="stat-sub">Assigned items</span>
+            </div>
+          </div>
+        </div>
+        <div className="hero-panel">
+          <div className="panel-label">Weekly overview</div>
+          <div className="panel-bubble">
+            <div className="bubble-icon">📅</div>
+            <div>
+              <div className="bubble-title">Next test</div>
+              <div className="bubble-sub">
+                {nextTest
+                  ? `${nextTest.subject} - ${nextTest.className} (${nextTest.date})`
+                  : "No tests scheduled"}
+              </div>
+            </div>
+          </div>
+          <div className="panel-bubble">
+            <div className="bubble-icon">✅</div>
+            <div>
+              <div className="bubble-title">Attendance sheets</div>
+              <div className="bubble-sub">
+                {attendanceMarkedCount ? `${attendanceMarkedCount} records saved` : "Not marked yet"}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card student-action-card teacher-action-card">
+        <div className="section-header">
+          <div>
+            <div className="section-title">Quick actions</div>
+            <div className="section-sub">Jump to a workflow</div>
+          </div>
+          <span className="mini-pill">Daily tools</span>
+        </div>
+        <div className="student-action-grid teacher-action-grid">
+          <button
+            className={`action-tile ${activePanel === "create" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("create")}
+          >
+            <span className="tile-icon upcoming">🚀</span>
+            <div className="tile-body">
+              <div className="tile-title">Create Test</div>
+              <div className="tile-sub">Plan a new weekly test</div>
+            </div>
+            <span className="tile-chip">{tests.length}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "add" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("add")}
+          >
+            <span className="tile-icon results">✏️</span>
+            <div className="tile-body">
+              <div className="tile-title">Add Questions</div>
+              <div className="tile-sub">Write or upload items</div>
+            </div>
+            <span className="tile-chip">Bank</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "bank" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("bank")}
+          >
+            <span className="tile-icon present">📚</span>
+            <div className="tile-body">
+              <div className="tile-title">Question Bank</div>
+              <div className="tile-sub">Curate and manage</div>
+            </div>
+            <span className="tile-chip">{bankQuestionCount}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "homework" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("homework")}
+          >
+            <span className="tile-icon homework">📝</span>
+            <div className="tile-body">
+              <div className="tile-title">Assign Homework</div>
+              <div className="tile-sub">Tasks and links</div>
+            </div>
+            <span className="tile-chip">{homework.length}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "attendance" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("attendance")}
+          >
+            <span className="tile-icon present">📊</span>
+            <div className="tile-body">
+              <div className="tile-title">Mark Attendance</div>
+              <div className="tile-sub">Save daily presence</div>
+            </div>
+            <span className="tile-chip">{attendanceMarkedCount}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "syllabus" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("syllabus")}
+          >
+            <span className="tile-icon syllabus">🗂️</span>
+            <div className="tile-body">
+              <div className="tile-title">Syllabus</div>
+              <div className="tile-sub">Share outlines</div>
+            </div>
+            <span className="tile-chip">{syllabusEntries.length}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "datesheet" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("datesheet")}
+          >
+            <span className="tile-icon datesheet">📆</span>
+            <div className="tile-body">
+              <div className="tile-title">Datesheet</div>
+              <div className="tile-sub">Exam calendar</div>
+            </div>
+            <span className="tile-chip">{datesheetEntries.length}</span>
+          </button>
+          <button
+            className={`action-tile ${activePanel === "upcoming" ? "active" : ""}`}
+            type="button"
+            onClick={() => setActivePanel("upcoming")}
+          >
+            <span className="tile-icon results">🔔</span>
+            <div className="tile-body">
+              <div className="tile-title">Upcoming Tests</div>
+              <div className="tile-sub">Schedule overview</div>
+            </div>
+            <span className="tile-chip">{tests.length}</span>
+          </button>
+        </div>
       </div>
 
       {showClassPicker && (
