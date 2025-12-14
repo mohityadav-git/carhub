@@ -12,7 +12,8 @@ function NavBar() {
     navigate("/");
   };
 
-  const isLoginPage = location.pathname === "/";
+  const isLoginPage = location.pathname === "/login";
+  const isActive = (path) => location.pathname === path;
 
   return (
     <header className="nav-shell">
@@ -49,18 +50,18 @@ function NavBar() {
         </div>
 
         <div className="navbar-center">
-          <button type="button" className="nav-link active">
+          <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
             Home
-          </button>
-          <button type="button" className="nav-link">
+          </Link>
+          <Link to="/about" className={`nav-link ${isActive("/about") ? "active" : ""}`}>
             About Us
-          </button>
-          <button type="button" className="nav-link">
+          </Link>
+          <Link to="/contact" className={`nav-link ${isActive("/contact") ? "active" : ""}`}>
             Contact Us
-          </button>
-          <button type="button" className="nav-link">
+          </Link>
+          <Link to="/pages" className={`nav-link ${isActive("/pages") ? "active" : ""}`}>
             Pages
-          </button>
+          </Link>
         </div>
 
         <div className="navbar-right">
@@ -77,7 +78,7 @@ function NavBar() {
           </div>
 
           {!user && !isLoginPage && (
-            <Link to="/" className="btn btn-outline btn-sm">
+            <Link to="/login" className="btn btn-outline btn-sm">
               Login
             </Link>
           )}

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [mode, setMode] = useState("student");
+  const [slideIndex, setSlideIndex] = useState(0);
   const [studentName, setStudentName] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
   const [studentError, setStudentError] = useState("");
@@ -12,6 +13,19 @@ function Login() {
 
   const { loginStudent, loginTeacher } = useAuth();
   const navigate = useNavigate();
+
+  const loginImages = [
+    "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1500&q=80",
+    "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=1500&q=80",
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % loginImages.length);
+    }, 5000); // 5 seconds per slide
+    return () => clearInterval(timer);
+  }, [loginImages.length]);
 
   const handleModeChange = (newMode) => {
     setMode(newMode);
@@ -50,175 +64,120 @@ function Login() {
     navigate("/teacher");
   };
 
+  const isStudent = mode === "student";
+
   return (
-    <div className="auth-hero-wrap">
-      <div className="auth-hero-card">
-        <div className="auth-hero-left">
-          <div className="auth-hero-brand">
-            <div className="brand-icon small" aria-hidden="true" />
-            <div>
-              <div className="brand-name">MDDM Inter College</div>
-              <div className="brand-caption">Where every mind shines</div>
-            </div>
-          </div>
+    <div className="login-shell">
+      <div className="login-illustration">
+        <div
+          key={slideIndex}
+          className="login-illustration-layer"
+          style={{ backgroundImage: `url('${loginImages[slideIndex]}')` }}
+        />
+      </div>
 
-          <div className="auth-hero-body">
-            <p className="auth-hero-kicker">Welcome back</p>
-            <h1 className="auth-hero-title">Access your account</h1>
-            <p className="auth-hero-sub">
-              Choose your role and continue to your dashboard.
-            </p>
-
-            <div className="auth-toggle">
-              <button
-                className={`toggle-btn ${mode === "student" ? "active" : ""}`}
-                onClick={() => handleModeChange("student")}
-                type="button"
-              >
-                Student Login
-              </button>
-              <button
-                className={`toggle-btn ${mode === "teacher" ? "active" : ""}`}
-                onClick={() => handleModeChange("teacher")}
-                type="button"
-              >
-                Teacher Login
-              </button>
-            </div>
-
-            {mode === "student" ? (
-              <form className="auth-form auth-hero-form" onSubmit={handleStudentLogin}>
-                <h2>Student Login</h2>
-                <label>
-                  Full Name
-                  <input
-                    type="text"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    placeholder="Enter your name"
-                  />
-                </label>
-                <label>
-                  Password 
-                  <input
-                    type="password"
-                    value={studentPassword}
-                    onChange={(e) => setStudentPassword(e.target.value)}
-                    placeholder="e.g. 8@21"
-                  />
-                </label>
-                {studentError && <div className="error-text">{studentError}</div>}
-                <button type="submit" className="btn btn-primary full-width">
-                  Login as Student
-                </button>
-              </form>
-            ) : (
-              <form className="auth-form auth-hero-form" onSubmit={handleTeacherLogin}>
-                <h2>Teacher Login</h2>
-                <label>
-                  Full Name
-                  <input
-                    type="text"
-                    value={teacherName}
-                    onChange={(e) => setTeacherName(e.target.value)}
-                    placeholder="Enter your name"
-                  />
-                </label>
-                <label>
-                  Teacher Code
-                  <input
-                    type="password"
-                    value={teacherCode}
-                    onChange={(e) => setTeacherCode(e.target.value)}
-                    placeholder="Enter teacher code"
-                  />
-                </label>
-                <button type="submit" className="btn btn-primary full-width">
-                  Login as Teacher
-                </button>
-              </form>
-            )}
+      <div className="login-panel">
+        <div className="login-brand-row">
+          <span
+            className="brand-icon large login-logo"
+            aria-label="Saraswati Maa playing veena logo"
+            style={{ backgroundImage: "url('/saraswati-maa.jpg')" }}
+          >
+            <span className="brand-fallback">M</span>
+          </span>
+          <div>
+            <div className="brand-name">MDDM Inter College</div>
+            <div className="brand-caption">Where every mind shines</div>
           </div>
         </div>
 
-        <div className="auth-hero-right">
-          <div className="auth-hero-visual">
-            <div className="auth-hero-bubble top"></div>
-            <div className="auth-hero-bubble mid"></div>
-            <div className="auth-hero-bubble bottom"></div>
+        <div className="login-heading">
+          <h2>Log in to your account</h2>
+          <p>Welcome back! Please log in to your account.</p>
+        </div>
 
-            
+        <div className="auth-toggle login-toggle">
+          <button
+            className={`toggle-btn ${isStudent ? "active" : ""}`}
+            onClick={() => handleModeChange("student")}
+            type="button"
+          >
+            Student Login
+          </button>
+          <button
+            className={`toggle-btn ${!isStudent ? "active" : ""}`}
+            onClick={() => handleModeChange("teacher")}
+            type="button"
+          >
+            Teacher Login
+          </button>
+        </div>
 
-            <div className="auth-hero-calendar">
-              <div className="cal-header">
-                <span>Week</span>
-                <strong>22 - 28</strong>
-              </div>
-              <div className="cal-days">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span className="active">Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-              </div>
-              <div className="cal-footer">Reminder set for Friday PTM</div>
+        {isStudent ? (
+          <form className="login-form" onSubmit={handleStudentLogin}>
+            <label>
+              User ID
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="Enter your name"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                value={studentPassword}
+                onChange={(e) => setStudentPassword(e.target.value)}
+                placeholder="e.g. 8@21"
+              />
+            </label>
+            {studentError && <div className="error-text">{studentError}</div>}
+            <div className="login-actions">
+              <a className="login-link" href="#">
+                Forgot Password?
+              </a>
             </div>
-
-            <div className="auth-hero-report">
-              <div className="report-header">
-                <span className="dot green"></span>
-                Weekly Report Ready
-              </div>
-              <div className="report-metrics">
-                <div>
-                  <div className="metric-value">92%</div>
-                  <div className="metric-label">Completion</div>
-                </div>
-                <div>
-                  <div className="metric-value">8.4</div>
-                  <div className="metric-label">Avg Score</div>
-                </div>
-                <div>
-                  <div className="metric-value">3</div>
-                  <div className="metric-label">Pending</div>
-                </div>
-              </div>
-              <div className="report-bar">
-                <span style={{ width: "80%" }} />
-              </div>
+            <button type="submit" className="btn login-btn">
+              LOGIN
+            </button>
+          </form>
+        ) : (
+          <form className="login-form" onSubmit={handleTeacherLogin}>
+            <label>
+              User ID
+              <input
+                type="text"
+                value={teacherName}
+                onChange={(e) => setTeacherName(e.target.value)}
+                placeholder="Enter your name"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                value={teacherCode}
+                onChange={(e) => setTeacherCode(e.target.value)}
+                placeholder="Enter teacher code"
+              />
+            </label>
+            <div className="login-actions">
+              <a className="login-link" href="#">
+                Forgot Password?
+              </a>
             </div>
+            <button type="submit" className="btn login-btn">
+              LOGIN
+            </button>
+          </form>
+        )}
 
-            <div className="auth-hero-schedule">
-              <div className="schedule-header">
-                <span className="dot amber"></span>
-                PTM Schedule
-              </div>
-              <div className="schedule-body">
-                <div>
-                  <strong>Friday</strong>
-                  <span>4:00 PM</span>
-                </div>
-                <div>
-                  <strong>Room 102</strong>
-                  <span>Class 8 & 9</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="auth-hero-student">
-              <div className="student-header">
-                <span className="dot blue"></span>
-                Best Student of the Month
-              </div>
-              <div className="student-card">
-                <div className="avatar a4" />
-                <div>
-                  <div className="student-name">Aarav Kumar</div>
-                  <div className="student-meta">Class 8 · 98% avg</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="login-help">
+          <div>Helpline: +91 7065465400</div>
+          <div>parents@mddmcollege.edu</div>
+          <div>(9:00 AM to 5:30 PM, Monday - Saturday)</div>
         </div>
       </div>
     </div>

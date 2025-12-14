@@ -110,6 +110,69 @@ const normalizeBank = (raw) => {
 // Prebuild a default bank so we can also seed sample tests with example questions
 const defaultQuestionBank = normalizeBank(buildInitialQuestionBank());
 
+const mockStudentsByClass = {
+  "Class 1": [
+    { name: "Aarav Singh", roll: "1" },
+    { name: "Mia Kapoor", roll: "2" },
+    { name: "Vihaan Sharma", roll: "3" },
+  ],
+  "Class 2": [
+    { name: "Ira Mehta", roll: "1" },
+    { name: "Reyansh Das", roll: "2" },
+    { name: "Zara Bedi", roll: "3" },
+  ],
+  "Class 3": [
+    { name: "Kabir Iyer", roll: "1" },
+    { name: "Anaya Patil", roll: "2" },
+    { name: "Arjun Nair", roll: "3" },
+  ],
+  "Class 4": [
+    { name: "Myra Saxena", roll: "1" },
+    { name: "Dev Khanna", roll: "2" },
+    { name: "Ayaan Pillai", roll: "3" },
+  ],
+  "Class 5": [
+    { name: "Siya Reddy", roll: "1" },
+    { name: "Rudra Jain", roll: "2" },
+    { name: "Tara Bose", roll: "3" },
+  ],
+  "Class 6": [
+    { name: "Ishaan Gupta", roll: "1" },
+    { name: "Naina Rao", roll: "2" },
+    { name: "Yuvan Kulkarni", roll: "3" },
+  ],
+  "Class 7": [
+    { name: "Advika Sen", roll: "1" },
+    { name: "Param Gill", roll: "2" },
+    { name: "Kiara Dutta", roll: "3" },
+  ],
+  "Class 8": [
+    { name: "Rhea Menon", roll: "1" },
+    { name: "Vivaan Suri", roll: "2" },
+    { name: "Aditi Malhotra", roll: "3" },
+  ],
+  "Class 9": [
+    { name: "Aryan Verma", roll: "1" },
+    { name: "Nisha Chawla", roll: "2" },
+    { name: "Rohan Malik", roll: "3" },
+  ],
+  "Class 10": [
+    { name: "Tanishq Batra", roll: "1" },
+    { name: "Khushi Narang", roll: "2" },
+    { name: "Arnav Goswami", roll: "3" },
+  ],
+  "Class 11": [
+    { name: "Pranav Mehra", roll: "1" },
+    { name: "Meera Kulkarni", roll: "2" },
+    { name: "Samar Kohli", roll: "3" },
+  ],
+  "Class 12": [
+    { name: "Ritika Anand", roll: "1" },
+    { name: "Devansh Sethi", roll: "2" },
+    { name: "Ishita Bawa", roll: "3" },
+  ],
+};
+
 const getQuestionsForSubjectAndClass = (subject, className, bank) => {
   const safeClass = className?.trim();
   if (subject === "All Subjects") {
@@ -178,6 +241,42 @@ function TeacherDashboard() {
   const [activePanel, setActivePanel] = useState(null); // 'create', 'add', 'bank'
   const [bankSubjectFilter, setBankSubjectFilter] = useState("All");
   const [bankClassFilter, setBankClassFilter] = useState("All");
+  const [attendanceClass, setAttendanceClass] = useState("");
+  const [attendanceDate, setAttendanceDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [attendanceRecords, setAttendanceRecords] = useState(() => {
+    const stored = localStorage.getItem("teacherAttendance");
+    return stored ? JSON.parse(stored) : {};
+  });
+  const [homework, setHomework] = useState(() => {
+    const stored = localStorage.getItem("teacherHomework");
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [homeworkClass, setHomeworkClass] = useState("");
+  const [homeworkSubject, setHomeworkSubject] = useState("");
+  const [homeworkTitle, setHomeworkTitle] = useState("");
+  const [homeworkDescription, setHomeworkDescription] = useState("");
+  const [homeworkDue, setHomeworkDue] = useState("");
+  const [homeworkLink, setHomeworkLink] = useState("");
+  const [syllabusEntries, setSyllabusEntries] = useState(() => {
+    const stored = localStorage.getItem("teacherSyllabus");
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [syllabusClass, setSyllabusClass] = useState("");
+  const [syllabusSubject, setSyllabusSubject] = useState("");
+  const [syllabusNotes, setSyllabusNotes] = useState("");
+  const [syllabusLink, setSyllabusLink] = useState("");
+  const [datesheetEntries, setDatesheetEntries] = useState(() => {
+    const stored = localStorage.getItem("teacherDatesheet");
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [datesheetClass, setDatesheetClass] = useState("");
+  const [datesheetSubject, setDatesheetSubject] = useState("");
+  const [datesheetDate, setDatesheetDate] = useState("");
+  const [datesheetTime, setDatesheetTime] = useState("");
+  const [datesheetNotes, setDatesheetNotes] = useState("");
+  const [datesheetLink, setDatesheetLink] = useState("");
 
   const fileToDataUrl = (file) =>
     new Promise((resolve) => {
@@ -396,11 +495,39 @@ function TeacherDashboard() {
     setSelectedQuestionIds([]);
   };
 
+  const handleAttendanceToggle = (student, present) => {
+    if (!attendanceClass) return;
+    const key = `${attendanceClass}|${attendanceDate}`;
+    setAttendanceRecords((prev) => {
+      const record = prev[key] || {};
+      return { ...prev, [key]: { ...record, [student]: present } };
+    });
+  };
+
+  useEffect(() => {
+    localStorage.setItem("teacherAttendance", JSON.stringify(attendanceRecords));
+  }, [attendanceRecords]);
+
+  useEffect(() => {
+    localStorage.setItem("teacherHomework", JSON.stringify(homework));
+  }, [homework]);
+
+  useEffect(() => {
+    localStorage.setItem("teacherSyllabus", JSON.stringify(syllabusEntries));
+  }, [syllabusEntries]);
+
+  useEffect(() => {
+    localStorage.setItem("teacherDatesheet", JSON.stringify(datesheetEntries));
+  }, [datesheetEntries]);
+
   const handleResetData = () => {
     localStorage.removeItem("teacherTests");
     localStorage.removeItem("teacherQuestions");
     localStorage.removeItem("teacherQuestionBank");
     localStorage.removeItem("studentTestRecords");
+    localStorage.removeItem("teacherHomework");
+    localStorage.removeItem("teacherSyllabus");
+    localStorage.removeItem("teacherDatesheet");
 
     setTests(initialTests);
     setQuestionBank(defaultQuestionBank);
@@ -413,37 +540,97 @@ function TeacherDashboard() {
     setActivePanel(null);
     setPendingTest(null);
     setSelectedQuestionIds([]);
+    setHomework([]);
+    setSyllabusEntries([]);
+    setDatesheetEntries([]);
+  };
+
+  const handleCreateHomework = (e) => {
+    e.preventDefault();
+    if (!homeworkSubject || !homeworkClass || !homeworkTitle) return;
+    const newItem = {
+      id: "HW" + (homework.length + 1),
+      subject: homeworkSubject,
+      className: homeworkClass,
+      title: homeworkTitle.trim(),
+      description: homeworkDescription.trim(),
+      dueDate: homeworkDue,
+      link: homeworkLink.trim(),
+    };
+    setHomework((prev) => [...prev, newItem]);
+    setHomeworkSubject("");
+    setHomeworkClass("");
+    setHomeworkTitle("");
+    setHomeworkDescription("");
+    setHomeworkDue("");
+    setHomeworkLink("");
+    setActivePanel(null);
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container teacher-page">
       <h1>Teacher Dashboard</h1>
       <p className="subtitle">
         Welcome, <strong>{user?.name}</strong>. Here you can create and manage
         weekly tests.
       </p>
 
-      <div className="card" style={{ marginBottom: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+      <div className="card dashboard-action-grid" style={{ marginBottom: "16px" }}>
         <button
-          className={`btn btn-primary btn-sm ${activePanel === "create" ? "active" : ""}`}
+          className={`btn dashboard-action-btn ${activePanel === "create" ? "active" : ""}`}
           type="button"
           onClick={() => setActivePanel("create")}
         >
           Create Test
         </button>
         <button
-          className={`btn btn-primary btn-sm ${activePanel === "add" ? "active" : ""}`}
+          className={`btn dashboard-action-btn ${activePanel === "add" ? "active" : ""}`}
           type="button"
           onClick={() => setActivePanel("add")}
         >
           Add Questions
         </button>
         <button
-          className={`btn btn-primary btn-sm ${activePanel === "bank" ? "active" : ""}`}
+          className={`btn dashboard-action-btn ${activePanel === "bank" ? "active" : ""}`}
           type="button"
           onClick={() => setActivePanel("bank")}
         >
           Question Bank
+        </button>
+        <button
+          className={`btn dashboard-action-btn ${activePanel === "homework" ? "active" : ""}`}
+          type="button"
+          onClick={() => setActivePanel("homework")}
+        >
+          Assign Homework
+        </button>
+        <button
+          className={`btn dashboard-action-btn ${activePanel === "attendance" ? "active" : ""}`}
+          type="button"
+          onClick={() => setActivePanel("attendance")}
+        >
+          Mark Attendance
+        </button>
+        <button
+          className={`btn dashboard-action-btn ${activePanel === "syllabus" ? "active" : ""}`}
+          type="button"
+          onClick={() => setActivePanel("syllabus")}
+        >
+          Syllabus
+        </button>
+        <button
+          className={`btn dashboard-action-btn ${activePanel === "datesheet" ? "active" : ""}`}
+          type="button"
+          onClick={() => setActivePanel("datesheet")}
+        >
+          Datesheet
+        </button>
+        <button
+          className={`btn dashboard-action-btn ${activePanel === "upcoming" ? "active" : ""}`}
+          type="button"
+          onClick={() => setActivePanel("upcoming")}
+        >
+          Upcoming Tests
         </button>
       </div>
 
@@ -564,17 +751,27 @@ function TeacherDashboard() {
                   ? "Create New Test"
                   : activePanel === "add"
                   ? "Add Questions"
-                  : "Question Bank"}
-              </h2>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={() => setActivePanel(null)}
-              >
-                Close
-              </button>
-            </div>
-            {activePanel === "create" && (
+                  : activePanel === "bank"
+                  ? "Question Bank"
+                  : activePanel === "homework"
+                  ? "Assign Homework"
+                  : activePanel === "attendance"
+                  ? "Mark Attendance"
+                  : activePanel === "syllabus"
+                  ? "Syllabus"
+                  : activePanel === "datesheet"
+                  ? "Datesheet"
+                  : "Upcoming Tests"}
+                </h2>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setActivePanel(null)}
+                >
+                  Close
+                </button>
+              </div>
+              {activePanel === "create" && (
               <>
                 <form className="form-grid" onSubmit={handleCreateTest}>
                   <label>
@@ -876,6 +1073,351 @@ function TeacherDashboard() {
               </>
             )}
 
+            {activePanel === "attendance" && (
+              <>
+                <div className="form-grid" style={{ marginTop: "8px" }}>
+                  <label>
+                    Class
+                    <select
+                      value={attendanceClass}
+                      onChange={(e) => setAttendanceClass(e.target.value)}
+                    >
+                      <option value="">Select class</option>
+                      {classOptions.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Date
+                    <input
+                      type="date"
+                      value={attendanceDate}
+                      onChange={(e) => setAttendanceDate(e.target.value)}
+                    />
+                  </label>
+                </div>
+                {attendanceClass ? (
+                  <div style={{ marginTop: "10px" }}>
+                    <strong>Mark attendance for {attendanceClass}</strong>
+                    <div className="class-grid" style={{ marginTop: "8px" }}>
+                      {(mockStudentsByClass[attendanceClass] || []).map((student) => {
+                        const key = `${attendanceClass}|${attendanceDate}`;
+                        const status = attendanceRecords[key]?.[student.roll];
+                        return (
+                          <div
+                            key={`${student.roll}-${student.name}`}
+                            className="class-card"
+                            style={{ alignItems: "center" }}
+                          >
+                            <div className="class-card-body">
+                              <h3 style={{ marginBottom: "4px" }}>
+                                {student.name} (Roll: {student.roll})
+                              </h3>
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${status === true ? "btn-primary" : "btn-outline"}`}
+                                  onClick={() => handleAttendanceToggle(student.roll, true)}
+                                >
+                                  Present
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${status === false ? "btn-danger" : "btn-outline"}`}
+                                  onClick={() => handleAttendanceToggle(student.roll, false)}
+                                >
+                                  Absent
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {(mockStudentsByClass[attendanceClass] || []).length === 0 && (
+                        <p style={{ gridColumn: "1 / -1" }}>No students listed for this class.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ marginTop: "10px" }}>Select a class to mark attendance.</p>
+                )}
+              </>
+            )}
+
+            {activePanel === "syllabus" && (
+              <section className="card" style={{ boxShadow: "none", padding: 0 }}>
+                <h3>Add Syllabus</h3>
+                <form
+                  className="form-grid"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!syllabusSubject || !syllabusClass) return;
+                    const newItem = {
+                      id: "SYL" + (syllabusEntries.length + 1),
+                      subject: syllabusSubject,
+                      className: syllabusClass,
+                      notes: syllabusNotes.trim(),
+                      link: syllabusLink.trim(),
+                    };
+                    setSyllabusEntries((prev) => [...prev, newItem]);
+                    setSyllabusSubject("");
+                    setSyllabusClass("");
+                    setSyllabusNotes("");
+                    setSyllabusLink("");
+                    setActivePanel(null);
+                  }}
+                >
+                  <label>
+                    Subject
+                    <select
+                      value={syllabusSubject}
+                      onChange={(e) => setSyllabusSubject(e.target.value)}
+                    >
+                      <option value="">Select subject</option>
+                      {subjectOptions
+                        .filter((s) => s.name !== "All Subjects")
+                        .map((s) => (
+                          <option key={s.name} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Class
+                    <select
+                      value={syllabusClass}
+                      onChange={(e) => setSyllabusClass(e.target.value)}
+                    >
+                      <option value="">Select class</option>
+                      {classOptions.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Notes
+                    <textarea
+                      rows="3"
+                      value={syllabusNotes}
+                      onChange={(e) => setSyllabusNotes(e.target.value)}
+                      placeholder="Topics covered, chapters, PDFs, etc."
+                    />
+                  </label>
+                  <label>
+                    Resource Link (optional)
+                    <input
+                      type="url"
+                      value={syllabusLink}
+                      onChange={(e) => setSyllabusLink(e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </label>
+                  <button type="submit" className="btn btn-primary full-width full-row">
+                    Save Syllabus
+                  </button>
+                </form>
+
+                <div style={{ marginTop: "12px" }}>
+                  <h4>Recent Syllabus</h4>
+                  {syllabusEntries.length === 0 ? (
+                    <p>No syllabus added yet.</p>
+                  ) : (
+                    <ul className="question-list">
+                      {syllabusEntries.slice(-5).reverse().map((item) => (
+                        <li key={item.id}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+                            <div>
+                              <strong>{item.subject}</strong> — {item.className}
+                              <div className="subtitle">{item.notes || "No notes"}</div>
+                              {item.link ? (
+                                <div style={{ marginTop: "4px" }}>
+                                  <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                    Open Resource
+                                  </a>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {activePanel === "datesheet" && (
+              <section className="card" style={{ boxShadow: "none", padding: 0 }}>
+                <h3>Add Datesheet Entry</h3>
+                <form
+                  className="form-grid"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!datesheetSubject || !datesheetClass) return;
+                    const newItem = {
+                      id: "DS" + (datesheetEntries.length + 1),
+                      subject: datesheetSubject,
+                      className: datesheetClass,
+                      date: datesheetDate,
+                      time: datesheetTime,
+                      notes: datesheetNotes.trim(),
+                      link: datesheetLink.trim(),
+                    };
+                    setDatesheetEntries((prev) => [...prev, newItem]);
+                    setDatesheetSubject("");
+                    setDatesheetClass("");
+                    setDatesheetDate("");
+                    setDatesheetTime("");
+                    setDatesheetNotes("");
+                    setDatesheetLink("");
+                    setActivePanel(null);
+                  }}
+                >
+                  <label>
+                    Subject
+                    <select
+                      value={datesheetSubject}
+                      onChange={(e) => setDatesheetSubject(e.target.value)}
+                    >
+                      <option value="">Select subject</option>
+                      {subjectOptions
+                        .filter((s) => s.name !== "All Subjects")
+                        .map((s) => (
+                          <option key={s.name} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Class
+                    <select
+                      value={datesheetClass}
+                      onChange={(e) => setDatesheetClass(e.target.value)}
+                    >
+                      <option value="">Select class</option>
+                      {classOptions.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Exam Date
+                    <input
+                      type="date"
+                      value={datesheetDate}
+                      onChange={(e) => setDatesheetDate(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Time
+                    <input
+                      type="time"
+                      value={datesheetTime}
+                      onChange={(e) => setDatesheetTime(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Notes
+                    <textarea
+                      rows="3"
+                      value={datesheetNotes}
+                      onChange={(e) => setDatesheetNotes(e.target.value)}
+                      placeholder="Venue, instructions, materials, etc."
+                    />
+                  </label>
+                  <label>
+                    Attachment Link (optional)
+                    <input
+                      type="url"
+                      value={datesheetLink}
+                      onChange={(e) => setDatesheetLink(e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </label>
+                  <button type="submit" className="btn btn-primary full-width full-row">
+                    Save Datesheet
+                  </button>
+                </form>
+
+                <div style={{ marginTop: "12px" }}>
+                  <h4>Recent Datesheet</h4>
+                  {datesheetEntries.length === 0 ? (
+                    <p>No datesheet entries yet.</p>
+                  ) : (
+                    <ul className="question-list">
+                      {datesheetEntries.slice(-5).reverse().map((item) => (
+                        <li key={item.id}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+                            <div>
+                              <strong>{item.subject}</strong> — {item.className}
+                              <div className="subtitle">
+                                {item.date || "Date TBA"} {item.time ? `at ${item.time}` : ""}
+                              </div>
+                              <div className="subtitle">{item.notes || "No notes"}</div>
+                              {item.link ? (
+                                <div style={{ marginTop: "4px" }}>
+                                  <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                    Open Attachment
+                                  </a>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {activePanel === "upcoming" && (
+              <section className="card" style={{ boxShadow: "none", padding: 0 }}>
+                <h3>Upcoming Tests</h3>
+                {tests.length === 0 ? (
+                  <p>No tests created yet.</p>
+                ) : (
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Subject</th>
+                        <th>Class</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Duration</th>
+                        <th>Difficulty</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tests.map((test) => (
+                        <tr key={test.id}>
+                          <td>{test.id}</td>
+                          <td>{test.subject}</td>
+                          <td>{test.className}</td>
+                          <td>{test.date}</td>
+                          <td>{test.time}</td>
+                          <td>{test.durationMinutes} min</td>
+                          <td>{test.difficulty || "Not set"}</td>
+                          <td>{test.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
+            )}
+
             {activePanel === "bank" && (
               <section className="card">
                 <h3>Question Bank</h3>
@@ -989,47 +1531,116 @@ function TeacherDashboard() {
                 )}
               </section>
             )}
+
+            {activePanel === "homework" && (
+              <section className="card">
+                <h3>Assign Homework</h3>
+                <form className="form-grid" onSubmit={handleCreateHomework}>
+                  <label>
+                    Subject
+                    <select
+                      value={homeworkSubject}
+                      onChange={(e) => setHomeworkSubject(e.target.value)}
+                    >
+                      <option value="">Select subject</option>
+                      {subjectOptions
+                        .filter((s) => s.name !== "All Subjects")
+                        .map((s) => (
+                          <option key={s.name} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Class
+                    <select
+                      value={homeworkClass}
+                      onChange={(e) => setHomeworkClass(e.target.value)}
+                    >
+                      <option value="">Select class</option>
+                      {classOptions.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Title
+                    <input
+                      type="text"
+                      value={homeworkTitle}
+                      onChange={(e) => setHomeworkTitle(e.target.value)}
+                      placeholder="e.g., Algebra practice set"
+                    />
+                  </label>
+                  <label>
+                    Description
+                    <textarea
+                      rows="3"
+                      value={homeworkDescription}
+                      onChange={(e) => setHomeworkDescription(e.target.value)}
+                      placeholder="Short notes or instructions"
+                    />
+                  </label>
+                  <label>
+                    Due Date
+                    <input
+                      type="date"
+                      value={homeworkDue}
+                      onChange={(e) => setHomeworkDue(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Resource Link (optional)
+                    <input
+                      type="url"
+                      value={homeworkLink}
+                      onChange={(e) => setHomeworkLink(e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </label>
+                  <button type="submit" className="btn btn-primary full-width full-row">
+                    Assign Homework
+                  </button>
+                </form>
+
+                <div style={{ marginTop: "12px" }}>
+                  <h4>Recent Homework</h4>
+                  {homework.length === 0 ? (
+                    <p>No homework assigned yet.</p>
+                  ) : (
+                    <ul className="question-list">
+                      {homework.slice(-5).reverse().map((hw) => (
+                        <li key={hw.id}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+                            <div>
+                              <strong>{hw.title}</strong> — {hw.subject} ({hw.className})
+                              <div className="subtitle">
+                                {hw.description || "No description"} {hw.dueDate ? `· Due: ${hw.dueDate}` : ""}
+                                {hw.link ? ` · Link available` : ""}
+                              </div>
+                              {hw.link ? (
+                                <div style={{ marginTop: "4px" }}>
+                                  <a href={hw.link} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                    Open Resource
+                                  </a>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       )}
 
-      <div className="dashboard-grid">
-        <section className="card">
-          <h2>Upcoming Tests</h2>
-          {tests.length === 0 ? (
-            <p>No tests created yet.</p>
-          ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Subject</th>
-                  <th>Class</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Duration</th>
-                  <th>Difficulty</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tests.map((test) => (
-                  <tr key={test.id}>
-                    <td>{test.id}</td>
-                    <td>{test.subject}</td>
-                    <td>{test.className}</td>
-                  <td>{test.date}</td>
-                  <td>{test.time}</td>
-                  <td>{test.durationMinutes} min</td>
-                  <td>{test.difficulty || "Not set"}</td>
-                  <td>{test.status}</td>
-                </tr>
-              ))}
-            </tbody>
-            </table>
-          )}
-        </section>
-      </div>
     </div>
   );
 }

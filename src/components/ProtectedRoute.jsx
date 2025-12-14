@@ -6,12 +6,12 @@ const ProtectedRoute = ({ role, children }) => {
   const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (role && user.role !== role) {
     // Wrong role - redirect to home
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;

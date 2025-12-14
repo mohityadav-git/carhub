@@ -5,6 +5,10 @@ import Login from "./pages/Login";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TestAttempt from "./pages/TestAttempt";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Pages from "./pages/Pages";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
@@ -15,7 +19,11 @@ function App() {
       <NavBar />
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/pages" element={<Pages />} />
 
           <Route
             path="/student"
